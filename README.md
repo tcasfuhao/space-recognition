@@ -49,12 +49,12 @@ python -m pip install -r requirements.txt
 
 ## 1. Prepare gold pairs
 
-Edit `config/prep/prepare_yq.yaml`. `data_roots` accepts multiple roots and
+Edit `config/prep/prepare.yaml`. `data_roots` accepts multiple roots and
 `prefer` selects every listed format rather than expressing a priority.
 
 ```bash
-python scripts/prepare_space_training.py --config config/prep/prepare_yq.yaml --dry-run
-python scripts/prepare_space_training.py --config config/prep/prepare_yq.yaml
+python scripts/prepare_space_training.py --config config/prep/prepare.yaml --dry-run
+python scripts/prepare_space_training.py --config config/prep/prepare.yaml
 ```
 
 Supported sources are EAF, Praat long-text TextGrid, CSV, TSV, and delimited TXT. EAF/TextGrid selectors name tiers. Table selectors name columns or use 1-based column numbers; headerless inputs require numbers. `all` selects every available tier or column.
@@ -65,10 +65,10 @@ The run writes `manifest.csv`, `train.csv`, `dev.csv`, `test.csv`, `conflicts.cs
 
 ## 2. Train
 
-Replace `<prep-run>` in `./logs/prep/yonghe_qiang_01/<prep-run>/...` from the `config/training/train_yq.yaml`, then run:
+Replace `<prep-run>` in `./logs/prep/yonghe_qiang_01/<prep-run>/...` from the `config/training/train.yaml`, then run:
 
 ```bash
-python -m src.training.train_boundary --config config/training/train_yq.yaml
+python -m src.training.train_boundary --config config/training/train.yaml
 ```
 
 The default two-layer bidirectional LSTM uses grapheme embeddings and a weighted binary boundary loss. It chooses the checkpoint and insertion threshold by development boundary F1 with early stopping. Each external model run contains:
@@ -81,11 +81,11 @@ Metrics include boundary precision/recall/F1, exact sentence accuracy, and word 
 
 ## 3. Restore files
 
-Edit `config/inference/restore_yq.yaml` to select the space-free sources and a trained model run. Validate first, then write timestamped copies:
+Edit `config/inference/restore.yaml` to select the space-free sources and a trained model run. Validate first, then write timestamped copies:
 
 ```bash
-python -m src.inference.restore_spaces --config config/inference/restore_yq.yaml --dry-run
-python -m src.inference.restore_spaces --config config/inference/restore_yq.yaml
+python -m src.inference.restore_spaces --config config/inference/restore.yaml --dry-run
+python -m src.inference.restore_spaces --config config/inference/restore.yaml
 ```
 
 Only selected annotation values are replaced. EAF tier and annotation IDs, TextGrid intervals and points, table cells outside selected columns, and all unselected metadata remain in their original positions. Existing whitespace in selected values is removed before prediction, making the command suitable for both fully space-free and partially spaced ASR output.
