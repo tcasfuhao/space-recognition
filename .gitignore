@@ -1,0 +1,14 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+
+# Heavy model runs and restored transcription files belong with language data.
+checkpoints/
+models/
+space-recognised/
+
+test/*
+tests/*
+
+logs/*
