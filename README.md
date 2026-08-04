@@ -88,3 +88,11 @@ python -m src.inference.restore_spaces --config config/inference/restore_yq.yaml
 Only selected annotation values are replaced. EAF tier and annotation IDs, TextGrid intervals and points, table cells outside selected columns, and all unselected metadata remain in their original positions. Existing whitespace in selected values is removed before prediction, making the command suitable for both fully space-free and partially spaced ASR output.
 
 Inference logs `predictions.csv` with the source path, tier/column locator, original text, model input, and restored text, plus `summary.json`.
+
+TP = TRUE POSITIVE, FP = FALSE POSITIVE, FN = FALSE NEGATIVE, TN = TRUE NEGATIVE
+
+Precision asks "how many spaces were correct"; TP/(TP+FP)
+Recall asks "how many spaces did I miss"; TP/(TP+FN)
+Boundary F1 asks "given a tolerance of θ, how close is the predicted text to the ground truth"
+WER = (S+D+I)/N
+Exact Sense asks "how many sentences are a pure match"
