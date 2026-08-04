@@ -1,0 +1,23 @@
+# Replace <prep-run> in ./logs/prep/yonghe_qiang_01/<prep-run>/... with the timestamp created by prepare_space_training.py.
+train_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/train.csv
+dev_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/dev.csv
+test_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/test.csv
+
+model_name: bilstm-boundary
+embedding_dim: 128
+hidden_size: 256
+num_layers: 2
+dropout: 0.2
+
+train_seed: 42
+batch_size: 64
+eval_batch_size: 128
+epochs: 50
+learning_rate: 0.001
+weight_decay: 0.01
+max_grad_norm: 1.0
+patience: 7
+device: auto
+
+out_dir: ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/processed/spaces
+
