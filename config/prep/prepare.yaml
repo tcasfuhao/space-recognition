@@ -1,0 +1,32 @@
+language: yonghe_qiang_01
+data_roots:
+  - ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/normalised/2026-08-03-12-38-29
+transcription_globs:
+  - "*.txt"
+  - "*.eaf"
+  - "*.TextGrid"
+  - "*.csv"
+  - "*.tsv"
+
+# Every discovered format listed here is selected; this is not a fallback order.
+prefer: [.eaf]
+
+# Structured transcription selectors accept one name, a list, or all.
+eaf_tier: all
+textgrid_tier: all
+
+# Table selectors accept column names, 1-based numbers, a list, or all.
+csv_has_header: true
+csv_text_column: all
+tsv_has_header: true
+tsv_text_column: all
+txt_delimiter: tab
+txt_has_header: false
+txt_text_column: 4
+
+split_seed: 42
+train_ratio: 0.8
+dev_ratio: 0.1
+test_ratio: 0.1
+logs_dir: ./logs/prep
+
