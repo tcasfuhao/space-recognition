@@ -10,11 +10,8 @@ TIE_BARS = {"\u035c", "\u0361"}
 
 
 def graphemes(text: str) -> list[str]:
-    # Unicode extended grapheme segmentation groups the tie bar with the first
-    # phone but leaves the second phone separate ("d͡", "ʒ").  In IPA the
-    # complete tied sequence is one unit and must never receive an internal
-    # word boundary, so join a following cluster when the previous one ends in
-    # COMBINING DOUBLE BREVE BELOW or COMBINING DOUBLE INVERTED BREVE.
+    # Unicode extended grapheme segmentation groups the tie bar with the first phone but leaves the second phone separate ("d͡", "ʒ").  
+    # In IPA the complete tied sequence is one unit and must never receive an internal word boundary, so join a following cluster when the previous one ends in COMBINING DOUBLE BREVE BELOW or COMBINING DOUBLE INVERTED BREVE.
     raw = regex.findall(r"\X", text)
     merged: list[str] = []
     index = 0
