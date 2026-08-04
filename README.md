@@ -37,10 +37,13 @@ Source transcription files are never overwritten.
 
 ## Requirements
 
-The existing ASR environment already supplies most dependencies. For a separate
-environment:
+This project must be run in the shared `tcas_asr_python3.10` Conda environment.
+Create it once with Python 3.10, activate it, and install this project's
+dependencies:
 
 ```bash
+conda create --name tcas_asr_python3.10 python=3.10
+conda activate tcas_asr_python3.10
 python -m pip install -r requirements.txt
 ```
 
