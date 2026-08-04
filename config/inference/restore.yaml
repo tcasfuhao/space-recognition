@@ -1,0 +1,30 @@
+language: yonghe_qiang_01
+
+# Point this at one or more roots containing transcription files with no spaces.
+data_roots:
+  - ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/normalised/2026-08-03-10-51-04
+transcription_globs:
+  - "*.txt"
+  - "*.eaf"
+  - "*.TextGrid"
+  - "*.csv"
+  - "*.tsv"
+prefer: [.eaf]
+
+eaf_tier: all
+textgrid_tier: all
+csv_has_header: true
+csv_text_column: all
+tsv_has_header: true
+tsv_text_column: all
+txt_delimiter: tab
+txt_has_header: false
+txt_text_column: 4
+
+# Replace <model-run> from the code ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/processed/spaces/<model-run> with bilstm-boundary_YYYYMMDD_HHMMSS.
+model_dir: ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/processed/spaces/bilstm-boundary_20260804_103710
+device: auto
+batch_size: 128
+
+output_root: ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/space-recognised
+logs_dir: ./logs/inference
