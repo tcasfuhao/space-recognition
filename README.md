@@ -1,8 +1,6 @@
 # Space Recognition
 
-`space-recognition` restores word boundaries in already-normalised transcriptions.
-Given `ðəkwɪkbraʊnfoks`, it predicts boundary positions and reconstructs text such
-as `ðə kwɪk braʊn foks`.
+`space-recognition` restores word boundaries in already-normalised transcriptions. Given `ðəkwɪkbraʊnfoks`, it predicts boundary positions and reconstructs text such as `ðə kwɪk braʊn foks`.
 
 ## Pipeline position and storage
 
@@ -12,10 +10,7 @@ Run the projects in this order:
 data-normalisation → speech-recognition → space-recognition
 ```
 
-The gold files used for training must retain their correct spaces. Preparation
-removes whitespace to construct the paired model input; it does not repeat
-phonetic normalization. Space-free inference files may come from ASR or another
-normalisation run.
+The gold files used for training must retain their correct spaces. Preparation removes whitespace to construct the paired model input; it does not repeat phonetic normalization. Space-free inference files may come from ASR or another normalisation run.
 
 Lightweight manifests and audit logs stay here:
 
@@ -37,9 +32,7 @@ Source transcription files are never overwritten.
 
 ## Requirements
 
-This project must be run in the shared `tcas_asr_python3.10` Conda environment.
-Create it once with Python 3.10, activate it, and install this project's
-dependencies:
+This project must be run in the shared `tcas_asr_python3.10` Conda environment. Create it once with Python 3.10, activate it, and install this project's dependencies:
 
 ```bash
 conda create --name tcas_asr_python3.10 python=3.10
@@ -97,5 +90,5 @@ TP = TRUE POSITIVE, FP = FALSE POSITIVE, FN = FALSE NEGATIVE, TN = TRUE NEGATIVE
 Precision asks "how many spaces were correct"; TP/(TP+FP)
 Recall asks "how many spaces did I miss"; TP/(TP+FN)
 Boundary F1 asks "given a tolerance of θ, how close is the predicted text to the ground truth"
-WER = (S+D+I)/N
+WER = (S+D+I)/N 
 Exact Sense asks "how many sentences are a pure match"
