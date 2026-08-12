@@ -1,7 +1,5 @@
-# Replace <prep-run> in ./logs/prep/yonghe_qiang_01/<prep-run>/... with the timestamp created by prepare_space_training.py.
-train_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/train.csv
-dev_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/dev.csv
-test_csv: ./logs/prep/yonghe_qiang_01/2026-08-04-10-29-01/test.csv
+# Exact timestamped directory created by prepare_space_training.py.
+splits_dir: ./logs/prep/yongning-na_01/2026-08-11-13-37-22
 
 model_name: bilstm-boundary
 embedding_dim: 128
@@ -19,5 +17,5 @@ max_grad_norm: 1.0
 patience: 7
 device: auto
 
-out_dir: ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/processed/spaces
-
+# Optional. By default this is derived from the manifests as <dataset-root>/processed/spaces.
+# out_dir: ~/projects/my-projects/asr-models/language-downloads/yongning-na_01/processed/spaces

@@ -1,6 +1,6 @@
-language: yonghe_qiang_01
+language: yongning-na_01
 data_roots:
-  - ~/projects/my-projects/asr-models/language-downloads/yonghe-qiang_01/normalised/2026-08-03-12-38-29
+  - ~/projects/my-projects/asr-models/language-downloads/yongning-na_01/doreco_yong1270_core_v2.0/normalised/2026-08-11-12-11-36/
 transcription_globs:
   - "*.txt"
   - "*.eaf"
