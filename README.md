@@ -10,7 +10,7 @@ Run the projects in this order:
 data-normalisation → speech-recognition → space-recognition
 ```
 
-The gold files used for training must retain their correct spaces. Preparation removes whitespace to construct the paired model input; it does not repeat phonetic normalization. Space-free inference files may come from ASR or another normalisation run.
+The gold standard files used for training must retain their correct spaces. Preparation removes whitespace to construct the paired model input; it does not repeat phonetic normalization. Space-free inference files may come from ASR or another normalisation run.
 
 Lightweight manifests and audit logs stay here:
 
@@ -58,7 +58,9 @@ The run writes `manifest.csv`, `train.csv`, `dev.csv`, `test.csv`, `conflicts.cs
 
 ## 2. Train
 
-Replace `<prep-run>` in `./logs/prep/yonghe_qiang_01/<prep-run>/...` from the `config/training/train.yaml`, then run:
+Set `splits_dir` in `config/training/train.yaml` to the exact timestamped
+preparation directory. Training automatically reads `train.csv`, `dev.csv`,
+and `test.csv` from that directory.
 
 ```bash
 python -m src.training.train_boundary --config config/training/train.yaml
@@ -71,6 +73,11 @@ The default two-layer bidirectional LSTM uses grapheme embeddings and a weighted
 - `train_log.tsv` and `test_metrics.json`
 
 Metrics include boundary precision/recall/F1, exact sentence accuracy, and word error rate.
+
+By default, the output directory is derived from the manifests' normalisation
+root: `<dataset-root>/normalised/<timestamp>` becomes
+`<dataset-root>/processed/spaces`. Set `out_dir` explicitly to override it;
+an explicit output is required if a run combines different dataset roots.
 
 ## 3. Restore files
 
@@ -85,10 +92,22 @@ Only selected annotation values are replaced. EAF tier and annotation IDs, TextG
 
 Inference logs `predictions.csv` with the source path, tier/column locator, original text, model input, and restored text, plus `summary.json`.
 
+## How are the Values Calculated
+
 TP = TRUE POSITIVE, FP = FALSE POSITIVE, FN = FALSE NEGATIVE, TN = TRUE NEGATIVE
 
-Precision asks "how many spaces were correct"; TP/(TP+FP)
-Recall asks "how many spaces did I miss"; TP/(TP+FN)
-Boundary F1 asks "given a tolerance of θ, how close is the predicted text to the ground truth"
+Precision asks: "of all the spaces the model inserted, how many were correct"
+    High prevision means the model rarely inserts an incorrect space
+        TP / (TP + FP)
+
+Recall asks "of all the spaces that should have been inserted, how many did the model find?"
+    High recall means the model rarely misses a required space
+        TP / (TP + FN)
+
+F1 combines these two into one balanced score
+        2 * (Precision * Recall)/(Precision + Recall)
+        = 2TP / (2TP + FP + FN)
+
 WER = (S+D+I)/N 
+
 Exact Sense asks "how many sentences are a pure match"
