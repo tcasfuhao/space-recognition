@@ -4,6 +4,7 @@ import argparse
 import csv
 import json
 import random
+import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -21,12 +22,16 @@ from src.training.text import gold_clusters_and_labels, graphemes, reconstruct
 
 PAD = "<PAD>"
 UNK = "<UNK>"
+SPLIT_NAMES = ("train", "dev", "test")
+OBSOLETE_SPLIT_KEYS = {"train_csv", "dev_csv", "test_csv"}
+NORMALISATION_TIMESTAMP_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-\d{2}-\d{2}-\d{2}$")
 
 
 @dataclass(frozen=True)
 class TextExample:
     input_text: str
     gold_text: str
+    data_root: str = ""
 
 
 class BoundaryDataset(Dataset):
@@ -72,7 +77,64 @@ def read_examples(path: Path) -> list[TextExample]:
         required = {"input_text", "gold_text"}
         if not required.issubset(reader.fieldnames or []):
             raise ValueError(f"{path} must contain input_text and gold_text columns")
-        return [TextExample(row["input_text"], row["gold_text"]) for row in reader if row["input_text"]]
+        return [
+            TextExample(row["input_text"], row["gold_text"], row.get("data_root", ""))
+            for row in reader
+            if row["input_text"]
+        ]
+
+
+def resolve_split_paths(config: dict[str, Any], project_dir: Path) -> tuple[Path, dict[str, Path]]:
+    obsolete = sorted(OBSOLETE_SPLIT_KEYS.intersection(config))
+    if obsolete:
+        raise ValueError(
+            f"Obsolete training config keys: {', '.join(obsolete)}; use splits_dir instead"
+        )
+    if not config.get("splits_dir"):
+        raise ValueError("splits_dir must point to one exact preparation run")
+    splits_dir = resolve_path(config["splits_dir"], project_dir)
+    if not splits_dir.is_dir():
+        raise ValueError(f"splits_dir is not a directory: {splits_dir}")
+    paths = {name: splits_dir / f"{name}.csv" for name in SPLIT_NAMES}
+    missing = [str(path) for path in paths.values() if not path.is_file()]
+    if missing:
+        raise ValueError("Missing generated split manifest(s): " + ", ".join(missing))
+    return splits_dir, paths
+
+
+def resolve_output_root(
+    config: dict[str, Any],
+    project_dir: Path,
+    examples_by_split: dict[str, list[TextExample]],
+) -> Path:
+    if config.get("out_dir"):
+        return resolve_path(config["out_dir"], project_dir)
+
+    examples = [item for values in examples_by_split.values() for item in values]
+    if any(not item.data_root for item in examples):
+        raise ValueError(
+            "Generated manifests must contain data_root when out_dir is not configured"
+        )
+    normalisation_roots = {
+        resolve_path(item.data_root, project_dir) for item in examples
+    }
+    invalid = [
+        root
+        for root in normalisation_roots
+        if root.parent.name.casefold() != "normalised"
+        or not NORMALISATION_TIMESTAMP_RE.fullmatch(root.name)
+    ]
+    if invalid:
+        raise ValueError(
+            "Cannot derive out_dir; data_root must use <dataset-root>/normalised/<timestamp>: "
+            + ", ".join(map(str, sorted(invalid)))
+        )
+    dataset_roots = {root.parent.parent for root in normalisation_roots}
+    if len(dataset_roots) != 1:
+        raise ValueError(
+            "Manifests contain multiple dataset roots; configure out_dir explicitly"
+        )
+    return next(iter(dataset_roots)) / "processed" / "spaces"
 
 
 def make_vocab(examples: list[TextExample]) -> dict[str, int]:
@@ -127,14 +189,17 @@ def masked_loss(logits, labels, mask, positive_weight):
 
 def train(config_path: str | Path):
     config, project_dir = load_config(config_path)
-    train_path = resolve_path(config["train_csv"], project_dir)
-    dev_path = resolve_path(config["dev_csv"], project_dir)
-    test_path = resolve_path(config["test_csv"], project_dir)
-    train_examples = read_examples(train_path)
-    dev_examples = read_examples(dev_path)
-    test_examples = read_examples(test_path)
-    if not train_examples or not dev_examples or not test_examples:
-        raise ValueError("train, dev, and test manifests must all contain examples")
+    splits_dir, split_paths = resolve_split_paths(config, project_dir)
+    examples_by_split = {
+        name: read_examples(path) for name, path in split_paths.items()
+    }
+    empty = [name for name, examples in examples_by_split.items() if not examples]
+    if empty:
+        raise ValueError("Split manifest(s) contain no examples: " + ", ".join(empty))
+    train_examples = examples_by_split["train"]
+    dev_examples = examples_by_split["dev"]
+    test_examples = examples_by_split["test"]
+    out_root = resolve_output_root(config, project_dir, examples_by_split)
 
     seed = int(config.get("train_seed", 42))
     random.seed(seed)
@@ -205,7 +270,6 @@ def train(config_path: str | Path):
     model.load_state_dict(best_state)
     test_metrics = score_predictions(predict_probabilities(model, test_loader, device), best_dev_threshold)
 
-    out_root = resolve_path(config["out_dir"], project_dir)
     model_name = str(config.get("model_name", "bilstm-boundary"))
     run_dir = out_root / f"{model_name}_{model_timestamp()}"
     run_dir.mkdir(parents=True, exist_ok=False)
@@ -213,7 +277,13 @@ def train(config_path: str | Path):
     (run_dir / "vocab.json").write_text(json.dumps(vocab, indent=2, ensure_ascii=False), encoding="utf-8")
     (run_dir / "model_config.json").write_text(json.dumps(model.serializable_config(), indent=2), encoding="utf-8")
     (run_dir / "threshold.json").write_text(json.dumps({"threshold": best_dev_threshold, "best_epoch": best_epoch, "best_dev_boundary_f1": best_f1}, indent=2), encoding="utf-8")
-    run_config = {**config, "resolved_train_csv": str(train_path), "resolved_dev_csv": str(dev_path), "resolved_test_csv": str(test_path), "device_used": str(device)}
+    run_config = {
+        **config,
+        "resolved_splits_dir": str(splits_dir),
+        **{f"resolved_{name}_csv": str(path) for name, path in split_paths.items()},
+        "resolved_out_dir": str(out_root),
+        "device_used": str(device),
+    }
     (run_dir / "run_config.json").write_text(json.dumps(run_config, indent=2), encoding="utf-8")
     (run_dir / "test_metrics.json").write_text(json.dumps(test_metrics, indent=2), encoding="utf-8")
     with (run_dir / "train_log.tsv").open("x", encoding="utf-8", newline="") as handle:
