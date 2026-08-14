@@ -12,7 +12,7 @@ transcription_globs:
 prefer: [.eaf]
 
 # Structured transcription selectors accept one name, a list, or all.
-eaf_tier: all
+eaf_tier: W-0
 textgrid_tier: all
 
 # Table selectors accept column names, 1-based numbers, a list, or all.
