@@ -8,7 +8,6 @@ checkpoints/
 models/
 space-recognised/
 
-test/*
 tests/*
 
 logs/*
